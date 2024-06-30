@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #262733;
+      font-family: 'Raleway', sans-serif;
+      color: white;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 360px;
+      height: 60vh; /* Changed to better fit content */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      padding-bottom: 20px;
+      background-color: #262733;
+      border-radius: 12px;
+      padding-top: 20px;
+    }
+
+    .button-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px; /* Adjusted for margin */
+    }
+
+    .scrollable {
+      overflow-y: auto;
+      width: 100%;
+      height: calc(100%+200px);
+    }
+
+    .scrollable::-webkit-scrollbar {
+      width: 8%; 
+      height: 8px; 
+    }
+
+    .scrollable::-webkit-scrollbar-thumb {
+      background-color: #4a4a4a;
+      border-radius: 6px;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #C4669E 0%, #5045ED 100%);
+      border: none;
+      border-radius: 14px;
+      padding: 14px 64px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+      transition: background-position 0.3s , background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: 200% 200%;
+      background-position: left;
+      font-weight: 700;
+    }
+
+    .button:hover {
+      background-position: center;
+    }
+
+    .button:active {
+      transition: background-position 0.3s ease-in-out;
+      background-position: center left;
+    }
+
+    .button svg {
+      margin-right: 10px;
+    }
+
+    .links {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      padding-bottom: 100%;
+      height: calc(100% - 20px);
+    }
+
+    .link {
+      display: block;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.3s, text-decoration-color 0.3s, font-weight 0.3s;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    .link + .link {
+      margin-top: 8px;
+    }
+
+    .highlighted-link {
+      text-decoration-color: rgba(0, 0, 200, 0.15);
+      color: #667eea;
+      font-weight: 500;
+      text-decoration-thickness: .5px;
+    }
+
+    .normal-link {
+      color: #616366;
+      font-weight: 400;
+      text-decoration: none;
+    }
+
+    .message-container {
+      width: 100%;
+      display: flex;
+      justify-content: left;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .flex {
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.25;
+      color: white;
+      background-color: #3C3F44;
+      border-radius: 12px;
+      align-items: center;
+      width: calc(100% - 24px);
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flex img {
+      width: 25px;
+      height: 25px;
+      flex-shrink: 0;
+    }
+
+    .flex p {
+      flex: 1;
+      margin: 0;
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: #495073;
+      overflow: hidden;
+    }
+
+    .progress {
+      width: 100%;
+      height: 100%;
+      background-color: #667eea;
+      transition: width 2s linear;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    }
+  </style>
+  <script>
+    function uploadImage() {
+      parent.postMessage({ pluginMessage: { type: 'upload' } }, '*');
+    }
+
+    window.onmessage = (event) => {
+      if (event.data.pluginMessage.type === 'upload-success') {
+        console.log('Upload success message received:', event.data.pluginMessage.urls);
+        const linksContainer = document.getElementById('links');
+        const previousLinks = linksContainer.querySelectorAll('.link');
+        
+        event.data.pluginMessage.urls.forEach((url, index) => {
+          const linkElement = document.createElement('div');
+          linkElement.className = 'link';
+          linkElement.innerText = url;
+          linkElement.onclick = () => copyToClipboard(url);
+          if (previousLinks[index]) {
+            linksContainer.insertBefore(linkElement, previousLinks[index]);
+            previousLinks[index].classList.remove('highlighted-link');
+            previousLinks[index].classList.add('normal-link');
+          } else {
+            linksContainer.appendChild(linkElement);
+          }
+        });
+
+        // Check if scrollable class needs to be added
+        updateScrollableClass();
+      }
+    };
+
+    function copyToClipboard(url) {
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showNotification('Link copied to clipboard');
+    }
+
+    function showNotification(message) {
+      const notificationElement = document.createElement('section');
+      notificationElement.className = 'flex';
+      notificationElement.innerHTML = `
+        <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/002f6852eeef3f9d4563f3e7230e9658b7257f113e729809fac2bc2ff1f9b88f?apiKey=8c571a83139f4332a49aba5ad356c92b&" alt="" />
+        <p>${message}</p>
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+      `;
+      document.querySelector('.message-container').appendChild(notificationElement);
+
+      // Start the progress bar animation
+      setTimeout(() => {
+        notificationElement.querySelector('.progress').style.width = '0%';
+      }, 100); // Start a little bit after load to ensure CSS is applied
+
+      // Hide the notification after 4 seconds
+      setTimeout(() => {
+        notificationElement.classList.add('fade-out');
+      }, 2200); // 2 seconds for progress bar + 100ms initial delay
+
+      // Remove the notification from the DOM after the fade out
+      setTimeout(() => {
+        notificationElement.remove();
+      }, 2600); // 2 seconds + 0.5 seconds for fade out transition
+    }
+
+    function updateScrollableClass() {
+      const linksContainer = document.getElementById('links');
+      const links = linksContainer.querySelectorAll('.link');
+      const maxLinks = 7; // Maximum number of links before scrollbar
+
+      if (links.length > maxLinks) {
+        linksContainer.classList.add('scrollable');
+      } else {
+        linksContainer.classList.remove('scrollable');
+      }
+    }
+
+    window.onload = () => {
+      const messageElement = document.getElementById('message');
+      const progressElement = document.querySelector('#message .progress');
+
+      // Start the progress bar animation
+      setTimeout(() => {
+        progressElement.style.width = '0%';
+      }, 100); // Start a little bit after load to ensure CSS is applied
+
+      // Hide the message after 2 seconds
+      setTimeout(() => {
+        messageElement.classList.add('fade-out');
+      }, 2100); // 2 seconds for progress bar + 100ms initial delay
+
+      // Remove the message from the DOM after the fade out
+      setTimeout(() => {
+        messageElement.classList.add('hidden');
+      }, 2600); // 2 seconds + 0.5 seconds for fade out transition
+    };
+</script>
+</head>
+<body>
+  <div class="container">
+    <div class="button-container">
+      <button class="button" onclick="uploadImage()">
+        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.771 12.9351C22.771 17.6491 22.771 20.0062 21.3065 21.4706C19.8421 22.9351 17.485 22.9351 12.771 22.9351C8.05695 22.9351 5.69993 22.9351 4.23547 21.4706C2.771 20.0062 2.771 17.6491 2.771 12.9351C2.771 8.22101 2.771 5.86399 4.23547 4.39953C5.69993 2.93506 8.05695 2.93506 12.771 2.93506" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M2.771 13.4351L4.52259 11.9025C5.43386 11.1052 6.80728 11.1509 7.66349 12.0071L11.9532 16.2968C12.6404 16.9841 13.7222 17.0778 14.5174 16.5189L14.8156 16.3094C15.9598 15.5052 17.5079 15.5984 18.5475 16.534L21.771 19.4351" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M17.771 2.93506V11.9351M17.771 2.93506L20.771 5.93506M17.771 2.93506L14.771 5.93506" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        export to Imgur
+      </button>
+    </div>
+    <div id="links" class="links scrollable"></div>
+  </div>
+  <div id="message-container" class="message-container"></div>
+  <div id="links" class="links"></div>
+</div>
+<div id="message-container" class="message-container">
+  <section id="message" class="flex">
+    <img loading="lazy" src="https://i.imgur.com/eawr9EJ.png" alt="" />
+    <p>Mass export not working, sorry</p>
+    <div class="progress-bar"><div class="progress"></div></div>
+  </section>
+</div>
+</body>
+</html>
