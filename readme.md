@@ -1,4 +1,4 @@
-## figma-to-umgur-uploader
+## figma-to-imgur-uploader
 
 ![img](https://i.imgur.com/S6pMAoD.png) 
 
